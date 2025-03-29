@@ -43,13 +43,13 @@ async def get_token_cookie(request: Request):
         raise HTTPException(status_code=401, detail="Unauthorized")
     return token
 
-@router.get("/", summary="Получить информацию о пользователе")
+@router.get("/", summary="Получить информацию о пользователе от yandex, используя token")
 async def post_addrate(token_cookie: str = Depends(get_token_cookie)):
     req = requests.get("https://login.yandex.ru/info?", headers={"Authorization":f"OAuth {token_cookie}"}, data={"format": "json"})
     user = json.loads(req.text)
     return user
 
-@router.get("/delete_token", summary="Удалить токен и id текущего пользователя")
+@router.get("/delete_token", summary="Удалить токен и id текущего пользователя (cookie)")
 async def post_addrate(response: Response):
     response.delete_cookie(key="yandex_token")
     response.delete_cookie(key="user_id")
