@@ -11,22 +11,28 @@ router = APIRouter()
 
 @router.post("/", summary="Добавить аудио", description="Добавить аудио.")
 async def post_addaudio(request: Request, name: str, file: UploadFile = File(...), session : AsyncSession = Depends(get_async_session)):
-    print(file)
-    file_types = ['audio/ogg', 'audio/mpeg']
-    if file.content_type in file_types:
-        location = f"folder/{name}.{file.content_type.split('/')[-1]}"
-        data = {'filename':name, 'location':location, 'user_owner':int(request.cookies.get("user_id"))}
-        query = insert(audio).values(data)
-        await session.execute(query)
-        await session.commit()
-        return {"status": "success"}
+    user_owner = request.cookies.get("user_id")
+    if user_owner:
+        file_types = ['audio/ogg', 'audio/mpeg']
+        if file.content_type in file_types:
+            location = f"folder/{name}.{file.content_type.split('/')[-1]}"
+            data = {'filename':name, 'location':location, 'user_owner':int(user_owner)}
+            query = insert(audio).values(data)
+            await session.execute(query)
+            await session.commit()
+            return {"status": "success"}
+        else:
+            return {"detail": "wrong audio format"}
     else:
-        return {"detail": "wrong audio format"}
+        raise HTTPException(status_code=401, detail="Unauthorized")
 
 @router.get("/", summary="Вывести аудио текущего пользователя", response_model=list[Audio])
 async def get_my_audio(request: Request, session : AsyncSession = Depends(get_async_session)):
-    user_id = int(request.cookies.get("user_id"))
-    query = select(audio).where(audio.c.user_owner == user_id)
-    result = await session.execute(query)
-    return result.all()
+    user_id = request.cookies.get("user_id")
+    if user_id:
+        query = select(audio).where(audio.c.user_owner == int(user_id))
+        result = await session.execute(query)
+        return result.all()
+    else:
+        raise HTTPException(status_code=401, detail="Unauthorized")
    
