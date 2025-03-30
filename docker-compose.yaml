@@ -1,0 +1,35 @@
+services:
+  backend:
+    build: .
+    container_name: fastapi_ya_backend
+    ports:
+      - "80:80"
+    volumes:
+      - /src:/src/app
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+
+  db:
+    image: postgres:16
+    container_name: postgres_ya_audio_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PORT_DOCKER}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      retries: 5
+      timeout: 3s
+
+volumes:
+  postgres_data:
