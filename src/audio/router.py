@@ -15,7 +15,13 @@ async def post_addaudio(request: Request, name: str, file: UploadFile = File(...
     if user_owner:
         file_types = ['audio/ogg', 'audio/mpeg']
         if file.content_type in file_types:
-            location = f"folder/{name}.{file.content_type.split('/')[-1]}"
+            file_folder = "/files"
+            location = f"{file_folder}/{name}.{file.content_type.split('/')[-1]}"
+
+            os.makedirs(file_folder, exist_ok=True)
+            with open(location, 'wb') as buffer:
+                buffer.write(await file.read())
+
             data = {'filename':name, 'location':location, 'user_owner':int(user_owner)}
             query = insert(audio).values(data)
             await session.execute(query)
