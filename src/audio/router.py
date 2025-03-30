@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from database import get_async_session
 from sqlalchemy import select, insert, update, delete
+import os
 
 from models.models import audio
 from audio.schemas import Audio
